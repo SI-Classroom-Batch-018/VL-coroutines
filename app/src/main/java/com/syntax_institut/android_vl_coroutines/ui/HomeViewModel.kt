@@ -8,70 +8,64 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+
 class HomeViewModel: ViewModel() {
 
-    // Live Data um Timer Wert zu beinhalten
+    // Livedata für den timerwert
     private var _timer = MutableLiveData<Int>(0)
     val timer: LiveData<Int>
         get() = _timer
 
-    // Der Job wird als lateinit Variable angelegt
+    // Coroutine als Job abspeichern, damit wir mehr Kontrolle über diesen haben
     private lateinit var timerJob: Job
 
-    // Boolean um zu prüfen ob Timer läuft
-    private var isTimerRunning = false
+    // Information darüber ob gerade hochzählt oder nicht
+    private var isRunnig = false
 
-    // Delay-Variable wird gesetzt um diese später anzupassen
-    private var delay = 1000L
+    // Delay außerhalb definieren, damit wir kontrolle über Zählgeschwindigkeit haben
+    private var delay: Long = 1000
 
-    // Init-Block um den Timer zu starten
-    // Wichtig ist: Alle Variablen, die die Init-Funktion benötigt müssen bereits vorher angelegt worden sein
     init {
         startTimer()
     }
 
-    // Funktion um Timer zu starten
+    // Funktion zum hochzählen den Timers
     private fun startTimer() {
-
-        // Werte werden auf 0 gesetzt
-        _timer.value = 0
-        var count = 0
-        // Boolean, der anzeigt ob Timer bereits läuft
-        isTimerRunning = true
-
-        // Coroutine wird gestartet
+        // Erstellen Counter zum Zählen initial der alte Wert
+        var counter = _timer.value!!
+        isRunnig = true
+        // Starten Coroutine und speichern diese in dem vorher erstellen Job, damit wir mehr Kontrolle darüber haben
         timerJob = viewModelScope.launch {
-            // while true, damit Timer immer weiterläuft
             while (true) {
-                // delay um eine Sekunde zu warten
+                // Verzögere das Zählen um delay
                 delay(delay)
-                // Count wird erhöht
-                count++
-                // Wert von Count wird in die LiveData gepostet
-                _timer.postValue(count)
+                // Mit Postvalue können wir die value einer livedata aus einer coroutine aktualisieren
+                _timer.postValue(counter++)
             }
         }
-
     }
 
-    // Funktion um Timer-Job zu stoppen
-    private fun stopTimer() {
-        timerJob.cancel()
-        isTimerRunning = false
-    }
-
-    // Funktion um Timer entweder zu stoppen oder zu starten
+    // Für startStop
     fun toggleTimer() {
-        if (!isTimerRunning) {
-            startTimer()
-        } else {
+        if(isRunnig) {
             stopTimer()
+        } else {
+            startTimer()
         }
     }
 
-    // Funktion um Delay des Timers zu verändern
+    // Job wird cecanceld um die resourcen des nebenthreads freizugeben
+    private fun stopTimer() {
+        timerJob.cancel()
+        isRunnig = false
+        delay = 1000
+    }
+
     fun faster() {
         delay /= 2
     }
 
+    fun slower() {
+        delay *= 2
+    }
 }

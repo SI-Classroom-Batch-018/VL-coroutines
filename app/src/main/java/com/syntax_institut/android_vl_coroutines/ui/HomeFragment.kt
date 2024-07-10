@@ -25,23 +25,21 @@ class HomeFragment: Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Observer um Timer zu beobachten
-        viewModel.timer.observe(viewLifecycleOwner) {
-            binding.tvTimer.text = it.toString()
+        viewModel.timer.observe(viewLifecycleOwner) { timer ->
+            binding.tvTimer.text = timer.toString()
         }
 
-        // Listener um Timer entweder zu starten oder zu stoppen
         binding.btStart.setOnClickListener {
             viewModel.toggleTimer()
         }
 
-        // Listener um Timer Delay zu erhöhen
         binding.btFaster.setOnClickListener {
             viewModel.faster()
         }
 
-
-
+        binding.btSlower.setOnClickListener {
+            viewModel.slower()
+        }
     }
 
 }
